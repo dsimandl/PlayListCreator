@@ -23,22 +23,20 @@ class MusicScraper:
 
     def get_page_items(self, soup_method_and_vars_list, soup_page):
         try:
-            while soup_method_and_vars_list:
+            for method, id_and_maybe_class in soup_method_and_vars_list:
                 if not soup_page:
-                    if isinstance(soup_method_and_vars_list[0][1], tuple):
-                        find_result = getattr(find_result, soup_method_and_vars_list[0][0])(str(
-                            soup_method_and_vars_list[0][1][0]), class_=soup_method_and_vars_list[0][1][1])
+                    if isinstance(id_and_maybe_class, tuple):
+                        find_result = getattr(find_result, method)(str(
+                            id_and_maybe_class[0]), class_=id_and_maybe_class[1])
                     else:
-                        find_result = getattr(find_result, soup_method_and_vars_list[0][0])(str(soup_method_and_vars_list[0][1]))
-                    soup_method_and_vars_list = soup_method_and_vars_list[1:]
+                        find_result = getattr(find_result, method)(str(id_and_maybe_class))
                 else:
-                    if isinstance(soup_method_and_vars_list[0][1], tuple):
-                        find_result = getattr(soup_page, soup_method_and_vars_list[0][0])(
-                            soup_method_and_vars_list[0][1][0], class_=soup_method_and_vars_list[0][1][1])
+                    if isinstance(id_and_maybe_class, tuple):
+                        find_result = getattr(soup_page, method)(
+                            id_and_maybe_class[0], class_=id_and_maybe_class[1])
                     else:
-                        find_result = getattr(soup_page, soup_method_and_vars_list[0][0])(str(soup_method_and_vars_list[0][1]))
+                        find_result = getattr(soup_page, method)(str(id_and_maybe_class))
                     soup_page = None
-                    soup_method_and_vars_list = soup_method_and_vars_list[1:]
             # debugging....
             for result in find_result:
                 for item in result:
@@ -46,8 +44,8 @@ class MusicScraper:
             return find_result
         except TypeError:
             print('Invalid format for method and vars list')
-        except Exception:
-            print('Something went wrong! %s' % str(Exception))
+  #      except Exception:
+  #          print('Something went wrong! %s' % str(Exception))
 
 class RdioAuthenticator:
 
