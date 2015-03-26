@@ -96,10 +96,8 @@ class PlaylistPopulator(RdioAuthenticator):
 
     def create_or_update_playlist(self, rdio_instance, valid_track_string, playlist_key, playlist_description):
         if playlist_key:
-            self._call_rdio_api_util(rdio_instance, 'addToPlaylist', {'playlist': playlist_key, 'tracks': valid_track_string})
-            return 'Playlist updated'
-        else:
-            self._call_rdio_api_util(rdio_instance, 'createPlaylist', {'name': self.playlist_name,
+            self._call_rdio_api_util(rdio_instance, 'deletePlaylist', {'playlist': playlist_key})
+        self._call_rdio_api_util(rdio_instance, 'createPlaylist', {'name': self.playlist_name,
                                                                  'description': playlist_description,
                                                                'tracks': valid_track_string})
-            return 'Playlist created'
+        return 'Playlist updated!'
