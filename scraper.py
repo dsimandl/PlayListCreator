@@ -1,5 +1,3 @@
-import json
-
 from urllib import request
 from bs4 import BeautifulSoup
 from scraper_utils import ScraperUtils
@@ -44,8 +42,8 @@ class MusicScraper:
             return find_result
         except TypeError:
             print('Invalid format for method and vars list')
-  #      except Exception:
-  #          print('Something went wrong! %s' % str(Exception))
+        except Exception:
+            print('Something went wrong! %s' % str(Exception))
 
 class RdioAuthenticator:
 
