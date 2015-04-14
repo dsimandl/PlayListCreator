@@ -1,5 +1,5 @@
 from urllib.error import HTTPError
-from rdio import Rdio
+from rdio.rdio import Rdio
 from rdio_api_config import RDIO_CREDENTIALS
 
 
