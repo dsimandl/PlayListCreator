@@ -33,6 +33,9 @@ class TestWebScraper(unittest.TestCase):
         self.spotify_track_list_results_json = open(
             os.path.join(os.path.dirname(__file__), 'testdata/spotify_artist_song_search_result.json')
         ).read()
+        self.spotify_add_to_playlist_result_json = open(
+            os.path.join(os.path.dirname(__file__), 'testdata/spotify_add_to_playlist_result.json')
+        ).read()
 
         self.rdio_instance = Mock(return_value='')
 
@@ -40,6 +43,11 @@ class TestWebScraper(unittest.TestCase):
         html = BeautifulSoup('<p>1.       <strong>Built To Spill</strong><br/>“Car”</p>')
         results = html.find_all('p')
         return results
+
+    def _get_spotify_playlist_creator_instance(self):
+        results = self._get_some_results_for_tests()
+        my_spotify_playlist_creator_for_test = SpotifyPlaylistCreator(results)
+        return my_spotify_playlist_creator_for_test
 
     def test_get_page_items(self):
         soup_page = BeautifulSoup(self.altside_html)
@@ -83,34 +91,42 @@ class TestWebScraper(unittest.TestCase):
 
     @patch('spotify_playlist_creator.SpotifyPlaylistCreator._get_sp_instance')
     def test_spotify_playlist_creation(self, my_spotify_authenticator):
-        results = self._get_some_results_for_tests()
         my_spotify_instance = MagicMock()
         my_spotify_instance.user_playlists.return_value = json.loads(self.spotify_playlist_results_no_TAS_playlist)
         my_spotify_instance.user_playlist_create.return_value = json.loads(self.spotify_playlist_create_result_json)
         my_spotify_authenticator.return_value = my_spotify_instance
-        my_spotify_playlist_creator_for_test = SpotifyPlaylistCreator(results)
+        my_spotify_playlist_creator_for_test = self._get_spotify_playlist_creator_instance()
         create_result = my_spotify_playlist_creator_for_test.check_playlist('julessurm')
         self.assertEqual(create_result, '5VUoTLGSRJSdMeakNP57fi')
 
     @patch('spotify_playlist_creator.SpotifyPlaylistCreator._get_sp_instance')
     def test_spotify_playlist_return_id(self, my_spotify_authenticator):
-        results = self._get_some_results_for_tests()
         my_spotify_instance = MagicMock()
         my_spotify_instance.user_playlists.return_value = json.loads(self.spotify_playlist_results)
         my_spotify_authenticator.return_value = my_spotify_instance
-        my_spotify_playlist_creator_for_test = SpotifyPlaylistCreator(results)
+        my_spotify_playlist_creator_for_test = self._get_spotify_playlist_creator_instance()
         create_result = my_spotify_playlist_creator_for_test.check_playlist('julessurm')
         self.assertEqual(create_result, '5VUoTLGSRJSdMeakNP57fi')
 
     @patch('spotify_playlist_creator.SpotifyPlaylistCreator._get_sp_instance')
     def test_set_spotify_track_list(self, my_spotify_authenticator):
-        results = self._get_some_results_for_tests()
         my_spotify_instance = MagicMock()
         my_spotify_instance.search.return_value = json.loads(self.spotify_track_list_results_json)
         my_spotify_authenticator.return_value = my_spotify_instance
-        my_spotify_playlist_creator_for_test = SpotifyPlaylistCreator(results)
+        my_spotify_playlist_creator_for_test = self._get_spotify_playlist_creator_instance()
         valid_track_list = my_spotify_playlist_creator_for_test.check_artist_and_set_track_list()
         self.assertIsInstance(valid_track_list, list)
+
+    @patch('spotify_playlist_creator.SpotifyPlaylistCreator._get_sp_instance')
+    def test_add_to_spotify_playlist(self, my_spotify_authenticator):
+        my_spotify_instance = MagicMock()
+        my_spotify_instance.user_playlist_add_tracks.return_value = json.loads(self.spotify_add_to_playlist_result_json)
+        my_spotify_authenticator.return_value = my_spotify_instance
+        my_spotify_playlist_creator_for_test = self._get_spotify_playlist_creator_instance()
+        playlist_updated = my_spotify_playlist_creator_for_test.update_playlist('julessurm', '5VUoTLGSRJSdMeakNP57fi',
+                                                                                ['1GNc7hEr1ktdYzYegVXOPK'] )
+        self.assertEqual(list(playlist_updated.keys())[0], 'snapshot_id')
+
 
 
 
