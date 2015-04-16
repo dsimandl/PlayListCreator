@@ -10,10 +10,12 @@ find_result = my_scraper.get_page_items([('find', ('div', 'view-top-albums')),
                                                                ('find', ('div', 'field-content')), ('find_all', 'p')],
                                         soup_page)
 
-playlist_user = input("Is this playlist for David or Jenny?: ").strip()
 
-if playlist_user.lower() == 'david':
-    if find_result:
+if find_result:
+    playlist_user = input("Is this playlist for David or Jenny?: ").strip()
+
+    if playlist_user.lower() == 'david':
+
         my_rdio_instance = RdioAuthenticator().set_rdio_instance()
         my_tracklist_creator = TrackListCreator(find_result)
         track_list = my_tracklist_creator.check_artist_and_set_track_list(my_rdio_instance)
@@ -22,12 +24,12 @@ if playlist_user.lower() == 'david':
         playlist_result = my_playlist_populator.create_or_update_playlist(my_rdio_instance, track_list, playlist_key,
                                                                   'The top 20 songs per week played on The Alternate Side WFUV 903')
         print(playlist_result)
-    else:
-        print('There was an error!')
-elif playlist_user.lower() == 'jenny':
-    if find_result:
+
+    elif playlist_user.lower() == 'jenny':
         my_spotify_playlist_creator_instance = SpotifyPlaylistCreator(find_result)
         my_playlist_id = my_spotify_playlist_creator_instance.check_playlist('julessurm')
         print(my_playlist_id)
+    else:
+        print('invalid user!')
 else:
-    print('invalid user!')
+    print("We didn't get a result!")
