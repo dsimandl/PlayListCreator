@@ -46,7 +46,7 @@ class SpotifyPlaylistCreator():
                     or artist_song_search_result['tracks']['total'] > 10:
                     pass
                 else:
-                    valid_track_list.append(artist_song_search_result['tracks']['items']['id'])
+                    valid_track_list.append(artist_song_search_result['tracks']['items'][0]['id'])
             except IndexError:
                 pass
         return valid_track_list

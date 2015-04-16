@@ -13,22 +13,25 @@ class TestWebScraper(unittest.TestCase):
 
     def setUp(self):
         self.altside_html = open(
-           os.path.join(os.path.dirname(__file__), 'altsideexample.html')
+           os.path.join(os.path.dirname(__file__), 'testdata/altsideexample.html')
         ).read()
         self.track_json = open(
-           os.path.join(os.path.dirname(__file__), 'artist_song.json')
+           os.path.join(os.path.dirname(__file__), 'testdata/artist_song.json')
         ).read()
         self.playlists_json = open(
-           os.path.join(os.path.dirname(__file__), 'simandl_playlists.json')
+           os.path.join(os.path.dirname(__file__), 'testdata/simandl_playlists.json')
         ).read()
         self.spotify_playlist_results_no_TAS_playlist = open(
-            os.path.join(os.path.dirname(__file__), 'spotify_query_results_no_playlist.json')
+            os.path.join(os.path.dirname(__file__), 'testdata/spotify_query_results_no_playlist.json')
         ).read()
         self.spotify_playlist_results = open(
-            os.path.join(os.path.dirname(__file__), 'spotify_playlist_query_results.json')
+            os.path.join(os.path.dirname(__file__), 'testdata/spotify_playlist_query_results.json')
         ).read()
         self.spotify_playlist_create_result_json = open(
-            os.path.join(os.path.dirname(__file__), 'spotify_playlist_create_results.json')
+            os.path.join(os.path.dirname(__file__), 'testdata/spotify_playlist_create_results.json')
+        ).read()
+        self.spotify_track_list_results_json = open(
+            os.path.join(os.path.dirname(__file__), 'testdata/spotify_artist_song_search_result.json')
         ).read()
 
         self.rdio_instance = Mock(return_value='')
@@ -98,5 +101,17 @@ class TestWebScraper(unittest.TestCase):
         my_spotify_playlist_creator_for_test = SpotifyPlaylistCreator(results)
         create_result = my_spotify_playlist_creator_for_test.check_playlist('julessurm')
         self.assertEqual(create_result, '5VUoTLGSRJSdMeakNP57fi')
+
+    @patch('spotify_playlist_creator.SpotifyPlaylistCreator._get_sp_instance')
+    def test_set_spotify_track_list(self, my_spotify_authenticator):
+        results = self._get_some_results_for_tests()
+        my_spotify_instance = MagicMock()
+        my_spotify_instance.search.return_value = json.loads(self.spotify_track_list_results_json)
+        my_spotify_authenticator.return_value = my_spotify_instance
+        my_spotify_playlist_creator_for_test = SpotifyPlaylistCreator(results)
+        valid_track_list = my_spotify_playlist_creator_for_test.check_artist_and_set_track_list()
+        self.assertIsInstance(valid_track_list, list)
+
+
 
 
