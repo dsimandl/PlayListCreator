@@ -23,14 +23,16 @@ class MusicScraper:
             for method, id_and_maybe_class in soup_method_and_vars_list:
                 if not soup_page:
                     if isinstance(id_and_maybe_class, tuple):
+                        id_, class_ = id_and_maybe_class
                         find_result = getattr(find_result, method)(str(
-                            id_and_maybe_class[0]), class_=id_and_maybe_class[1])
+                            id_), class_=class_)
                     else:
                         find_result = getattr(find_result, method)(str(id_and_maybe_class))
                 else:
                     if isinstance(id_and_maybe_class, tuple):
+                        id_, class_ = id_and_maybe_class
                         find_result = getattr(soup_page, method)(
-                            id_and_maybe_class[0], class_=id_and_maybe_class[1])
+                            id_, class_=class_)
                     else:
                         find_result = getattr(soup_page, method)(str(id_and_maybe_class))
                     soup_page = None

@@ -22,15 +22,16 @@ class TrackListCreator(RdioAuthenticator):
         for result in self.result_list:
             # just using the positions for now....
             try:
-                print(result.contents)
-                artist_song_search_result = self._call_rdio_api_util(rdio_instance, 'search', {'query': "%s %s" % (list(result)[1].string,
-                                                                                   list(result)[3].string),
+                _, artist, _, song = list(result)
+                artist_song_search_result = self._call_rdio_api_util(rdio_instance, 'search', {'query': "%s %s" % (artist.string,
+                                                                                   song.string),
                                                                'types': 'Artist, Song'})
                 if artist_song_search_result['result']['track_count'] == 0 \
                     or artist_song_search_result['result']['track_count'] > 10:
                     pass
                 else:
-                    valid_track_string += ''.join(artist_song_search_result['result']['results'][0]['key'] + ',')
+                    song_info, *_ = artist_song_search_result['result']['results']
+                    valid_track_string += ''.join(song_info['key'] + ',')
             except IndexError:
                 pass
 
