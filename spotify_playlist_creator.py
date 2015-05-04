@@ -31,7 +31,7 @@ class SpotifyPlaylistCreator():
             print('Invalid Spotify instance for playlist read')
         sp = self._get_sp_instance('playlist-modify-private')
         if sp:
-            results = sp.user_playlist_create(username, 'TAS Top 20' + playlist_name, public=False)
+            results = sp.user_playlist_create(username, playlist_name, public=False)
             return results['id']
         else:
             print('Invalid Spotify instance for playlist create')
@@ -41,8 +41,14 @@ class SpotifyPlaylistCreator():
         sp = self._get_sp_instance('')
         for result in self.result_list:
             try:
-                _, artist, _, song = list(result)
-                artist_song_search_result = sp.search(artist.string + " " + song.string)
+                # Just check if its not a list for now which will tell us if its a TAS list or not.
+                # Will update this once we know what the TAS site looks like
+                if not isinstance(result, list):
+                    _, artist, _, song = list(result)
+                    artist, song = artist.string, song.string
+                else:
+                    _, artist, song, _ = result
+                artist_song_search_result = sp.search(artist + " " + song)
                 if artist_song_search_result['tracks']['total'] == 0 \
                     or artist_song_search_result['tracks']['total'] > 10:
                     pass

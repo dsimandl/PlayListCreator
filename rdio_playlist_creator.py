@@ -22,9 +22,15 @@ class TrackListCreator(RdioAuthenticator):
         for result in self.result_list:
             # just using the positions for now....
             try:
-                _, artist, _, song = list(result)
-                artist_song_search_result = self._call_rdio_api_util(rdio_instance, 'search', {'query': "%s %s" % (artist.string,
-                                                                                   song.string),
+                # Just check if its not a list for now which will tell us if its a TAS list or not.
+                # Will update this once we know what the TAS site looks like
+                if not isinstance(result, list):
+                    _, artist, _, song = list(result)
+                    artist, song = artist.string, song.string
+                else:
+                    _, artist, song, _ = result
+                artist_song_search_result = self._call_rdio_api_util(rdio_instance, 'search', {'query': "%s %s" % (artist,
+                                                                                   song),
                                                                'types': 'Artist, Song'})
                 if artist_song_search_result['result']['track_count'] == 0 \
                     or artist_song_search_result['result']['track_count'] > 10:

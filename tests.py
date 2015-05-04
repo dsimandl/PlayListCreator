@@ -1,25 +1,28 @@
 import unittest
 import os
+import re
 import json
-from spotipy import Spotify
 from unittest.mock import Mock, MagicMock, patch
 
-from scraper import MusicScraper
+from scraper import TASMusicScraper, SOMAFMMusicScraper
 from rdio_playlist_creator import TrackListCreator, PlaylistPopulator
 from spotify_playlist_creator import SpotifyPlaylistCreator
 from bs4 import BeautifulSoup
 
-class TestWebScraper(unittest.TestCase):
 
+class TestWebScraper(unittest.TestCase):
     def setUp(self):
         self.altside_html = open(
-           os.path.join(os.path.dirname(__file__), 'testdata/altsideexample.html')
+            os.path.join(os.path.dirname(__file__), 'testdata/altsideexample.html')
         ).read()
+        self.somafmbagel_html = open(
+            os.path.join(os.path.dirname(__file__), 'testdata/somafmbagelexample.html'),
+        encoding = "ISO-8859-1").read()
         self.track_json = open(
-           os.path.join(os.path.dirname(__file__), 'testdata/artist_song.json')
+            os.path.join(os.path.dirname(__file__), 'testdata/artist_song.json')
         ).read()
         self.playlists_json = open(
-           os.path.join(os.path.dirname(__file__), 'testdata/simandl_playlists.json')
+            os.path.join(os.path.dirname(__file__), 'testdata/simandl_playlists.json')
         ).read()
         self.spotify_playlist_results_no_TAS_playlist = open(
             os.path.join(os.path.dirname(__file__), 'testdata/spotify_query_results_no_playlist.json')
@@ -39,6 +42,35 @@ class TestWebScraper(unittest.TestCase):
 
         self.rdio_instance = Mock(return_value='')
 
+        self.TAS_test_page = {'url': 'http://thealternateside.org/', 'layout': [
+            {'method': 'find',
+             'element': 'div',
+             'identifier': {'class': 'view-top-albums'}
+            },
+            {
+                'method': 'find',
+                'element': 'div',
+                'identifier': {'class': "field-content"}
+            },
+            {
+                'method': 'find_all',
+                'element': 'p',
+                'identifier': None
+            }
+        ]}
+        self.SOMAFM_Bagel_test_page = {'url': 'http://somafm.com/charts/bagel/', 'layout': [
+            {
+                'method': 'find',
+                'element': 'div',
+                'identifier': {'id': 'content'}
+            },
+            {
+                'method': 'find',
+                'element': 'pre',
+                'identifier': None
+            }
+        ]}
+
     def _get_some_results_for_tests(self):
         html = BeautifulSoup('<p>1.       <strong>Built To Spill</strong><br/>“Car”</p>')
         results = html.find_all('p')
@@ -49,12 +81,16 @@ class TestWebScraper(unittest.TestCase):
         my_spotify_playlist_creator_for_test = SpotifyPlaylistCreator(results)
         return my_spotify_playlist_creator_for_test
 
-    def test_get_page_items(self):
+    def test_get_TAS_page_items(self):
         soup_page = BeautifulSoup(self.altside_html)
-        song_list = MusicScraper('example.com').get_page_items([('find', ('div', 'view-top-albums')),
-                                                               ('find', ('div', 'field-content')), ('find_all', 'p')],
-                                                     soup_page)
+        song_list = TASMusicScraper('example.com').get_page_items(self.TAS_test_page['layout'],
+                                                               soup_page)
 
+        self.assertIsInstance(song_list, list)
+
+    def test_get_SOMAFM_Bagel_page_items(self):
+        soup_page = BeautifulSoup(self.somafmbagel_html)
+        song_list = SOMAFMMusicScraper('example.com').get_page_items(self.SOMAFM_Bagel_test_page['layout'], soup_page)
         self.assertIsInstance(song_list, list)
 
     @patch('rdio_playlist_creator.TrackListCreator._call_rdio_api_util')
@@ -96,7 +132,7 @@ class TestWebScraper(unittest.TestCase):
         my_spotify_instance.user_playlist_create.return_value = json.loads(self.spotify_playlist_create_result_json)
         my_spotify_authenticator.return_value = my_spotify_instance
         my_spotify_playlist_creator_for_test = self._get_spotify_playlist_creator_instance()
-        create_result = my_spotify_playlist_creator_for_test.check_playlist('julessurm')
+        create_result = my_spotify_playlist_creator_for_test.check_playlist('julessurm', 'My Playlist for testing')
         self.assertEqual(create_result, '5VUoTLGSRJSdMeakNP57fi')
 
     @patch('spotify_playlist_creator.SpotifyPlaylistCreator._get_sp_instance')
@@ -105,7 +141,7 @@ class TestWebScraper(unittest.TestCase):
         my_spotify_instance.user_playlists.return_value = json.loads(self.spotify_playlist_results)
         my_spotify_authenticator.return_value = my_spotify_instance
         my_spotify_playlist_creator_for_test = self._get_spotify_playlist_creator_instance()
-        create_result = my_spotify_playlist_creator_for_test.check_playlist('julessurm')
+        create_result = my_spotify_playlist_creator_for_test.check_playlist('julessurm', 'TAS Top 20')
         self.assertEqual(create_result, '5VUoTLGSRJSdMeakNP57fi')
 
     @patch('spotify_playlist_creator.SpotifyPlaylistCreator._get_sp_instance')
@@ -124,7 +160,7 @@ class TestWebScraper(unittest.TestCase):
         my_spotify_authenticator.return_value = my_spotify_instance
         my_spotify_playlist_creator_for_test = self._get_spotify_playlist_creator_instance()
         playlist_updated = my_spotify_playlist_creator_for_test.update_playlist('julessurm', '5VUoTLGSRJSdMeakNP57fi',
-                                                                                ['1GNc7hEr1ktdYzYegVXOPK'] )
+                                                                                ['1GNc7hEr1ktdYzYegVXOPK'])
         self.assertEqual(list(playlist_updated.keys())[0], 'snapshot_id')
 
 
