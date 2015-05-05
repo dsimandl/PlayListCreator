@@ -40,4 +40,4 @@ class SOMAFMMusicScraper(TASMusicScraper):
         result = TASMusicScraper.get_page_items(self, layout, soup_page)
         song_page_part = result.string[result.string.find('Top 30 Tracks BY SPINS'):result.string.find('Top 30 Tracks BY LISTENERS')-3]
         song_page_part_list = song_page_part.splitlines()
-        return [re.split(r'\s*(?:\.|\-|\([0-9]*\))\s*', song_page_part_list[i]) for i in range(1, len(song_page_part_list))]
+        return [re.split(r'\s*(?:\d+\.|\s\-\s|\s\(\d+\))\s*', song_page_part_list[i]) for i in range(1, len(song_page_part_list))]
